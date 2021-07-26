@@ -8,7 +8,7 @@ import { Books } from './entities/books.entity';
 export class BooksService {
   constructor(
     @InjectRepository(Books)
-    private readonly usersRepository: Repository<Books>,
+    private readonly booksRepository: Repository<Books>,
   ) { }
 
   create(createBookDto: CreateBooksDto): Promise<Books> {
@@ -21,15 +21,19 @@ export class BooksService {
     book.isbn = createBookDto.isbn;
     book.image = createBookDto.image;
     book.category = createBookDto.category;
-    return this.usersRepository.save(book);
+    return this.booksRepository.save(book);
+  }
+
+  async queryBuilder(alias: string) {
+    return this.booksRepository.createQueryBuilder(alias);
   }
 
   async findAll(): Promise<Books[]> {
-    return this.usersRepository.find();
+    return this.booksRepository.find();
   }
 
   findOne(id: string): Promise<Books> {
-    return this.usersRepository.findOne(id);
+    return this.booksRepository.findOne(id);
   }
 
   searchOne(title: string): Promise<Books | undefined> {
@@ -41,6 +45,6 @@ export class BooksService {
   }
 
   async remove(id: string): Promise<void> {
-    await this.usersRepository.delete(id);
+    await this.booksRepository.delete(id);
   }
 }

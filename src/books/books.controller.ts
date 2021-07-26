@@ -1,16 +1,34 @@
-import { Body, Controller, Delete, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { CreateBooksDto } from './dto/create-book.dto';
 import { Books } from './entities/books.entity';
 import { BooksService } from './books.service';
+import { Request } from 'express';
 
 @Controller('books')
 export class BooksController {
   constructor(private readonly booksService: BooksService) { }
 
+  // @Get('search')
+  // search(@Query('title') searchingTitle: string): Promise<Books> {
+  //   return this.booksService.searchOne(searchingTitle);
+  // }
+
   @Get('search')
-  search(@Query('title') searchingTitle: string): Promise<Books> {
-    return this.booksService.searchOne(searchingTitle);
+  async search(@Req() req: Request) {
+    const builder = await this.booksService.queryBuilder('books');
+    console.log(req.query.searching);
+    if (req.query.searching) {
+      builder.where("books.title LIKE :searching OR books.category LIKE :searching", { searching: `%${req.query.searching}%` });
+    }
+
+    const sort: any = req.query.sort;
+    console.log(sort);
+    if (sort) {
+      builder.orderBy('books.title', "ASC");
+    }
+    return await builder.getMany();
   }
+
 
   @Post()
   create(@Body() CreateBookDto: CreateBooksDto): Promise<Books> {
