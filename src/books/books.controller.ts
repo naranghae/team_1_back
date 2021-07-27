@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, MethodNotAllowedException, Param, Post, Query, Req } from '@nestjs/common';
 import { CreateBooksDto } from './dto/create-book.dto';
 import { Books } from './entities/books.entity';
 import { BooksService } from './books.service';
@@ -26,7 +26,18 @@ export class BooksController {
     if (sort) {
       builder.orderBy('books.title', "ASC");
     }
-    return await builder.getMany();
+
+    const page: number = parseInt(req.query.page as any) || 1;
+    const perPage = 10;
+    const total = await builder.getCount();
+
+    builder.offset((page - 1) * perPage).limit(perPage);
+    return {
+      data: await builder.getMany(),
+      total,
+      page,
+      last_page: Math.ceil(total / perPage)
+    };
   }
 
 
